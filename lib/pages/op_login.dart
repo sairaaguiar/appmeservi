@@ -1,7 +1,6 @@
+import 'package:get/get.dart';
 import 'package:meserviaplicacao/pages/criar_conta.dart';
-import 'package:meserviaplicacao/pages/login.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 
@@ -99,7 +98,7 @@ class LoginPage extends StatelessWidget {
                                           onPressed: () {
                                             // 'context' é usado aqui para navegar para outra tela
                                             const String opConta = "CPF";
-                                            context.push('/criarconta/$opConta');
+                                            Get.offAllNamed('/criarconta/$opConta');
                                           },
                                           icon: const Icon(
                                             Icons.keyboard_arrow_right_rounded,
@@ -165,11 +164,7 @@ class LoginPage extends StatelessWidget {
                                 ))),
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const Login()),
-                            );
+                            Get.offAllNamed("/login");
                           },
                           child: RichText(
                             textScaler: MediaQuery.of(context).textScaler,

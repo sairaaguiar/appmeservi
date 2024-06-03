@@ -1,27 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
-import 'package:mobx/mobx.dart';
 import 'package:quickalert/quickalert.dart';
-import 'package:meserviaplicacao/key.dart';
+import 'package:meserviaplicacao/keys.dart';
 
-
-part 'banco_de_dados.g.dart';
-
-class BancoDados = _BancoDados with _$BancoDados;
-
-abstract class _BancoDados with Store {
-
-  @observable
+class BDController extends GetxController {
+  static BDController get to => Get.find();
   bool isConnected = false;
 
+  final isLoggedIn = false.obs;
+  final isLoading = true.obs;
 
-  _BancoDados() {
-    connectBD();
-  }
-
-  @action
-  // Conexão com o banco de dados.
   Future<void> connectBD() async {
     String? aplicationId = aplicativoId;
     String? keyClient = chaveCliente;
@@ -37,98 +26,85 @@ abstract class _BancoDados with Store {
 
     final apiResponse = await Parse().healthCheck();
 
-    if (apiResponse.success) {
+    isConnected = apiResponse.success;
+  }
 
-     isConnected = true;
-
-    } else {
-
-      isConnected = false;
-
+    Future<void> logoutUser(BuildContext context) async {
+    if (!isConnected) {
+      await connectBD();
     }
-  }
 
-  @action
-  // Consultando o banco de dados.
-  Future<List<ParseObject>> lerDados(String className) async {
-   QueryBuilder<ParseObject> consulta = QueryBuilder<ParseObject>(ParseObject(className));
-   final ParseResponse consultaResposta = await consulta.query();
-
-   if(consultaResposta.success && consultaResposta.results != null) {
-
-    return consultaResposta.results as List<ParseObject>;
-    
-   } else {
-
-    return [];
-
-   }
-  }
-
-
-  @action
-  Future<void> criarUser(BuildContext context, String nome, String senha, String email) async {
-   final user = ParseUser.createUser(nome, senha, email);
-   var resposta = await user.signUp();
-
-   if (resposta.success) {
-  
-    QuickAlert.show(
-      title: "Tudo certo",
-      onConfirmBtnTap: () => context.pushNamed("inicio"),
-      confirmBtnText: "Ok",
-      confirmBtnColor: const Color.fromRGBO(246, 107, 14, 1),
-      context: context, type: QuickAlertType.success, text: "Parabéns sua conta foi criada com sucesso!");
-
-
-
-
-   } else {
-    
-
-    QuickAlert.show(
-      context: context, type: QuickAlertType.error, text: resposta.error!.message);
-
-   }
-
-  }
-
-
-  @action
-  Future<void> loginUser(BuildContext context, String nome, String senha) async {
-
-    final user = ParseUser(nome, senha, null);
-    var resposta = await user.login();
-
-    if (resposta.success) {
-
-      context.pushNamed('inicio');
-
-    } else {
-
-      QuickAlert.show(context: context, type: QuickAlertType.error, text: resposta.error!.message);
-    }
-  }
-
-
-  @action
-  Future<void> logoutUser(BuildContext context) async {
     final user = await ParseUser.currentUser() as ParseUser;
-
     var resposta = await user.logout();
 
     if (resposta.success) {
-
-      context.pushNamed("login");
-
+      Get.offAllNamed("/login");
     } else {
-
       QuickAlert.show(
-      context: context, type: QuickAlertType.error, text: resposta.error!.message);
-
-   }
+        context: Get.context!,
+        type: QuickAlertType.error,
+        text: resposta.error!.message,
+      );
+    }
   }
+
+  // Consultando o banco de dados.
+  Future<List<ParseObject>> lerDados(String className) async {
+    QueryBuilder<ParseObject> consulta =
+        QueryBuilder<ParseObject>(ParseObject(className));
+    final ParseResponse consultaResposta = await consulta.query();
+
+    if (consultaResposta.success && consultaResposta.results != null) {
+      return consultaResposta.results as List<ParseObject>;
+    } else {
+      return [];
+    }
+  }
+
+  Future<void> salvarDados({classe, nome, documento, email}) async {
+    var dados = ParseObject(classe);
+    dados.set("nome", nome);
+    dados.set("documento", documento);
+    dados.set("email", email);
+
+    var resposta = await dados.save();
+
+    if (resposta.success) {
+      print("Dados salvo");
+    } else {
+      print(resposta.error!.message);
+    }
+  }
+
+
+  Future<void> salvarLocalizacao(double lat, double long) async {
+    final user = await ParseUser.currentUser() as ParseUser?;
+    if (user == null) {
+      // Lida com o caso onde o usuário não está logado
+      return;
+    }
+
+    final parseObject = ParseObject('Endereco')
+      ..set('latitude_longitude', ParseGeoPoint(latitude: lat, longitude: long))
+      ..set('usuario', user.toPointer());
+
+    final response = await parseObject.save();
+
+    if (response.success) {
+      QuickAlert.show(
+        context: Get.context!,
+        type: QuickAlertType.success,
+        title: 'Sucesso',
+        text: 'Localização salva com sucesso',
+      );
+    } else {
+      QuickAlert.show(
+        context: Get.context!,
+        type: QuickAlertType.error,
+        title: 'Erro',
+        text: 'Falha ao salvar a localização',
+      );
+    }
+  }
+
 }
-
-
-
