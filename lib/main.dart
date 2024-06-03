@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:meserviaplicacao/backend/banco_de_dados.dart';
-import 'package:meserviaplicacao/backend/loginback.dart';
 import 'package:meserviaplicacao/pages/criar_conta.dart';
 import 'package:meserviaplicacao/pages/login.dart';
-import 'package:meserviaplicacao/pages/inicio_page.dart';
 import 'package:meserviaplicacao/pages/op_login.dart';
 import 'package:meserviaplicacao/tela_introducao.dart';
 
