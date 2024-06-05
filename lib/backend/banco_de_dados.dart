@@ -78,14 +78,20 @@ class BDController extends GetxController {
 
 
   Future<void> salvarLocalizacao(double lat, double long) async {
-    final user = await ParseUser.currentUser() as ParseUser?;
-    if (user == null) {
-      // Lida com o caso onde o usuário não está logado
-      return;
-    }
+  final user = await ParseUser.currentUser() as ParseUser?;
+  if (user == null) {
+    return;
+  }
 
+  // 1. Verificar se já existe um endereço para o usuário
+  final query = QueryBuilder<ParseObject>(ParseObject('Endereco'))
+    ..whereEqualTo('usuario', user.toPointer());
+
+  final existingAddress = await query.first();
+
+  if (existingAddress == null) { // 2. Salvar somente se não existir
     final parseObject = ParseObject('Endereco')
-      ..set('latitude_longitude', ParseGeoPoint(latitude: lat, longitude: long))
+      ..set('coordenadas', ParseGeoPoint(latitude: lat, longitude: long))
       ..set('usuario', user.toPointer());
 
     final response = await parseObject.save();
@@ -106,5 +112,6 @@ class BDController extends GetxController {
       );
     }
   }
+}
 
 }
