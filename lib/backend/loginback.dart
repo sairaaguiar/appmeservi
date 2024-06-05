@@ -61,10 +61,10 @@ class LoginForm extends GetxController {
   
 
   // Validações para fazer login
-  bool get validarNome => nome.isNotEmpty;
+  bool get validarNome => RegExp(r"^([\w\.-_]+)(@+)([\w]+)((\.+\w{2,3}){1,2})$").hasMatch(nome);
   bool get validarSenha => senha.isNotEmpty;
   bool get validarEmail => RegExp(r"^([\w\.-_]+)(@+)([\w]+)((\.+\w{2,3}){1,2})$").hasMatch(email);
-  bool get validarLogin => validarNome || validarEmail && validarSenha;
+  bool get validarLogin => validarNome && validarSenha;
 }
 
 
